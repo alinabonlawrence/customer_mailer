@@ -11,7 +11,7 @@ import koaBody from "koa-body";
 const nodemailer = require("nodemailer");
 
 dotenv.config();
-const port = parseInt(process.env.PORT, 10) || 8090;
+const port = parseInt(process.env.PORT, 10) || 8092;
 const dev = process.env.NODE_ENV !== "production";
 const app = next({
   dev,
@@ -122,11 +122,10 @@ app.prepare().then(async () => {
     const session = await Shopify.Utils.loadCurrentSession(ctx.req, ctx.res);
     const data = ctx.request.body;
     const products = data.top_product;
-
-    console.log(products);
+    const email = data.email;
 
     const top_products = products.map((product) => {
-      return `<h3>${product}</h3>`;
+      return `<h2>${product}</h2>`;
     });
     const transporter = nodemailer.createTransport({
       service: "gmail",
@@ -138,28 +137,27 @@ app.prepare().then(async () => {
 
     let message = {
       from: "CompShop <comp-shop-007@gmail.com>",
-      to: data.email,
+      to: email,
       subject: "WELCOME TO COMP-SHOP",
       html: `
        <div style="text-align: center; justify-content: center;">
        <h1>You can now avail to our top products</h1>
        <br>
        ${top_products}
-
        <h2>Buy Now at ${session.shop}</h2>
        </div>
-
-       
       `,
     };
 
-    transporter.sendMail(message, (data, err) => {
-      if (data) {
+    transporter.sendMail(message, (err, data) => {
+      if (err) {
+        console.log("Sending Email Error", err);
+        ctx.status = 400;
+        ctx.body = err;
+      } else {
+        console.log("Success Sending Email", data);
         ctx.status = 200;
         ctx.body = data;
-        return data;
-      } else {
-        return err;
       }
     });
   });
