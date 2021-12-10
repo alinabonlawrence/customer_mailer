@@ -174,6 +174,41 @@ app.prepare().then(async () => {
     ctx.status = 200;
   });
 
+  // Billing Options of the app
+
+  //Standard Version App
+  router.post("/std-app", async (ctx) => {
+    //get session token
+    const session = await Shopify.Utils.loadCurrentSession(ctx.req, ctx.res);
+
+    //required to import handlers
+    //import * as handlers from "./handlers/index";
+    server.context.client = await handlers.createClient(
+      session.shop,
+      session.accessToken
+    );
+
+    //returns confirmationURL from get-subcription-url.js in handler
+    const res = await handlers.getSubscriptionUrl(ctx, session.shop);
+
+    //remember to always put cts.status on routes to prevent 404 error in FE
+    ctx.status = 200;
+    ctx.body = res;
+  });
+  // Professional Version App
+  router.post("/pro-app", async (ctx) => {
+    //get session token
+    const session = await Shopify.Utils.loadCurrentSession(ctx.req, ctx.res);
+    server.context.client = await handlers.createClient(
+      session.shop,
+      session.accessToken
+    );
+    const res = await handlers.getSubscriptionPro(ctx, session.shop);
+
+    ctx.status = 200;
+    ctx.body = res;
+  });
+
   router.get("(/_next/static/.*)", handleRequest); // Static content is clear
   router.get("/_next/webpack-hmr", handleRequest); // Webpack content is clear
   router.get("(.*)", async (ctx) => {

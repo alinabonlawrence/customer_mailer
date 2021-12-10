@@ -38,13 +38,27 @@ export function RECURRING_CREATE(url) {
     }`;
 }
 
-export const getSubscriptionUrl = async ctx => {
+export const getSubscriptionUrl = async (ctx, shop) => {
   const { client } = ctx;
+
+  // console.log(client);
+
   const confirmationUrl = await client
     .mutate({
-      mutation: RECURRING_CREATE(process.env.HOST)
+      mutation: RECURRING_CREATE(`${process.env.HOST}/auth?shop=${shop}`),
     })
-    .then(response => response.data.appSubscriptionCreate.confirmationUrl);
+    .then((response) => response.data.appSubscriptionCreate.confirmationUrl);
 
-  return ctx.redirect(confirmationUrl);
+  return confirmationUrl;
 };
+
+// export const getSubscriptionUrl = async ctx => {
+//   const { client } = ctx;
+//   const confirmationUrl = await client
+//     .mutate({
+//       mutation: RECURRING_CREATE(process.env.HOST)
+//     })
+//     .then(response => response.data.appSubscriptionCreate.confirmationUrl);
+
+//   return ctx.redirect(confirmationUrl);
+// };

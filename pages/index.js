@@ -7,7 +7,6 @@ import {
   Page,
   ResourceList,
   Stack,
-  TextContainer,
   TextStyle,
 } from "@shopify/polaris";
 import React, { useEffect, useState } from "react";
