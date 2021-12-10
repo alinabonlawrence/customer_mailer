@@ -9,6 +9,7 @@ import Router from "koa-router";
 import routes from "./router/index";
 import koaBody from "koa-body";
 const nodemailer = require("nodemailer");
+import * as handlers from "./handlers/index";
 
 dotenv.config();
 const port = parseInt(process.env.PORT, 10) || 8092;
@@ -62,6 +63,10 @@ app.prepare().then(async () => {
 
         // Redirect to app with shop parameter upon auth
         ctx.redirect(`/?shop=${shop}&host=${host}`);
+        // server.context.client = await handlers.createClient(shop, accessToken);
+
+        // await handlers.getSubscriptionUrl(ctx);
+        // await handlers.getOneTimeUrl(ctx);
       },
     })
   );
@@ -148,17 +153,25 @@ app.prepare().then(async () => {
       `,
     };
 
-    transporter.sendMail(message, (err, data) => {
+    transporter.sendMail(message, (data, err) => {
       if (err) {
         console.log("Sending Email Error", err);
-        ctx.status = 400;
+
         ctx.body = err;
+        ctx.status = 200;
+
+        return err;
       } else {
         console.log("Success Sending Email", data);
-        ctx.status = 200;
+
         ctx.body = data;
+        ctx.status = 200;
+
+        return data;
       }
     });
+
+    ctx.status = 200;
   });
 
   router.get("(/_next/static/.*)", handleRequest); // Static content is clear
