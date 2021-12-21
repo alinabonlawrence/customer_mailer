@@ -15,6 +15,7 @@ function index({ authAxios }) {
   const [customers, setCustomers] = useState([]);
   const [orders, setOrders] = useState([]);
   const [loadData, setLoadData] = useState(true);
+  const [subcriptions, setSubcriptions] = useState([]);
 
   useEffect(() => {
     authAxios
@@ -38,6 +39,12 @@ function index({ authAxios }) {
         }
       })
       .catch((error) => console.log(error));
+
+    authAxios.get("/subscriptions").then((result) => {
+      const subscriptions = result.body.recurring_application_charges;
+      console.log(subscriptions);
+      setSubcriptions(subscriptions);
+    });
 
     setLoadData(loadData);
   }, [loadData]);
@@ -95,14 +102,15 @@ function index({ authAxios }) {
           })
           .then((result) => console.log(result.data))
           .catch((error) => console.log(error.response));
+        console.log(`Email has been sent to customer ${customer.id}`);
       } else {
-        console.log("Customer no email");
+        console.log(`Customer ${customer.id} has no email`);
       }
     });
   };
 
   //send individual email
-  const send_single_mail = async (single_email) => {
+  const send_single_mail = async (id, single_email) => {
     if (single_email !== null) {
       authAxios
         .post("/sendEmail", {
@@ -111,17 +119,37 @@ function index({ authAxios }) {
         })
         .then((result) => {
           if (result.data) {
-            console.log(result.data);
+            console.log(`Email has been sent to customer ${customer.id}`);
           }
         })
         .catch((error) => console.log(error.response));
-      console.log(single_email);
     } else {
-      console.log("Customer no email");
+      console.log(`Customer ${id} has no email`);
     }
   };
 
-  return (
+  const stdSubs = async () => {
+    authAxios.post("std-app").then((result) => {
+      window.parent.location.href = result.data;
+    });
+  };
+
+  const proSubs = async () => {
+    authAxios.post("pro-app").then((result) => {
+      window.parent.location.href = result.data;
+    });
+  };
+
+  const subPicker = (
+    <Page>
+      <Button onClick={stdSubs}>Standard Subscription</Button>
+
+      <Button onClick={proSubs}>Professional Subscription</Button>
+    </Page>
+  );
+  return subcriptions === undefined ? (
+    subPicker
+  ) : (
     <Page>
       <Stack alignment="center" spacing="extraLoose">
         <Stack.Item fill>
@@ -172,7 +200,7 @@ function index({ authAxios }) {
                       <div>{email}</div>
                     </Stack.Item>
                     <Stack.Item>
-                      <Button onClick={() => send_single_mail(email)}>
+                      <Button onClick={() => send_single_mail(id, email)}>
                         Send Email
                       </Button>
                     </Stack.Item>

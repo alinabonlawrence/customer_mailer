@@ -5,22 +5,22 @@ export function RECURRING_CREATE(url) {
   return gql`
     mutation {
       appSubscriptionCreate(
-          name: "Standard Plan"
+          name: "Pro Plan"
           returnUrl: "${url}"
           test: true
           lineItems: [
           {
             plan: {
               appUsagePricingDetails: {
-                  cappedAmount: { amount: 10, currencyCode: USD }
-                  terms: "$1 for 1000 emails"
+                  cappedAmount: { amount: 100, currencyCode: USD }
+                  terms: "$0.5 for 1000 emails"
               }
             }
           }
           {
             plan: {
               appRecurringPricingDetails: {
-                  price: { amount: 10, currencyCode: USD }
+                  price: { amount: 100, currencyCode: USD }
               }
             }
           }
@@ -37,9 +37,11 @@ export function RECURRING_CREATE(url) {
         }
     }`;
 }
-// Added (shop) in the parameter in order to add authentication
-export const getSubscriptionUrl = async (ctx, shop) => {
+
+export const getSubscriptionPro = async (ctx, shop) => {
   const { client } = ctx;
+
+  // console.log(client);
 
   const confirmationUrl = await client
     .mutate({
@@ -49,14 +51,3 @@ export const getSubscriptionUrl = async (ctx, shop) => {
 
   return confirmationUrl;
 };
-
-// export const getSubscriptionUrl = async ctx => {
-//   const { client } = ctx;
-//   const confirmationUrl = await client
-//     .mutate({
-//       mutation: RECURRING_CREATE(process.env.HOST)
-//     })
-//     .then(response => response.data.appSubscriptionCreate.confirmationUrl);
-
-//   return ctx.redirect(confirmationUrl);
-// };

@@ -153,25 +153,18 @@ app.prepare().then(async () => {
       `,
     };
 
-    transporter.sendMail(message, (data, err) => {
+    const emailResponse = transporter.sendMail(message, (err, data) => {
       if (err) {
         console.log("Sending Email Error", err);
-
-        ctx.body = err;
-        ctx.status = 200;
-
         return err;
       } else {
         console.log("Success Sending Email", data);
-
-        ctx.body = data;
-        ctx.status = 200;
-
         return data;
       }
     });
 
     ctx.status = 200;
+    ctx.body = emailResponse;
   });
 
   // Billing Options of the app
@@ -207,6 +200,19 @@ app.prepare().then(async () => {
 
     ctx.status = 200;
     ctx.body = res;
+  });
+
+  //Check Subcription
+  router.get("/subscriptions", async (ctx) => {
+    const session = await Shopify.Utils.loadCurrentSession(ctx.req, ctx.res);
+    const client = new Shopify.Clients.Rest(session.shop, session.accessToken);
+    //check for active subcriptions
+    const data = await client.get({
+      path: "recurring_application_charges",
+    });
+    console.log(data.recurring_application_charges);
+    ctx.status = 200;
+    ctx.body = data;
   });
 
   router.get("(/_next/static/.*)", handleRequest); // Static content is clear
