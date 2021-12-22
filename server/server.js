@@ -202,6 +202,22 @@ app.prepare().then(async () => {
     ctx.body = res;
   });
 
+  // router.post("/cancel-sub", koaBody(), async (ctx) => {
+  //   //get session token
+
+  //   const data = ctx.request.body;
+
+  //   const session = await Shopify.Utils.loadCurrentSession(ctx.req, ctx.res);
+  //   const client = new Shopify.Clients.Rest(session.shop, session.accessToken);
+  //   //check for active subcriptions
+  //   const data = await client.delete({
+  //     path: `recurring_application_charges/${data.id}`,
+  //   });
+
+  //   ctx.status = 200;
+  //   ctx.body = data;
+  // });
+
   //Check Subcription
   router.get("/subscriptions", async (ctx) => {
     const session = await Shopify.Utils.loadCurrentSession(ctx.req, ctx.res);
@@ -210,7 +226,7 @@ app.prepare().then(async () => {
     const data = await client.get({
       path: "recurring_application_charges",
     });
-    console.log(data.recurring_application_charges);
+    console.log(data.body.recurring_application_charges);
     ctx.status = 200;
     ctx.body = data;
   });

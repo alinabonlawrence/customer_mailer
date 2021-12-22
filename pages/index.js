@@ -15,7 +15,11 @@ function index({ authAxios }) {
   const [customers, setCustomers] = useState([]);
   const [orders, setOrders] = useState([]);
   const [loadData, setLoadData] = useState(true);
-  const [subcriptions, setSubcriptions] = useState([]);
+  const [subName, setSubName] = useState("");
+  const [subId, setSubId] = useState("");
+  const [subStatus, setSubStatus] = useState("");
+  const [stdButton, setStdButton] = useState(true);
+  const [proButton, setProButton] = useState(true);
 
   useEffect(() => {
     authAxios
@@ -41,13 +45,28 @@ function index({ authAxios }) {
       .catch((error) => console.log(error));
 
     authAxios.get("/subscriptions").then((result) => {
-      const subscriptions = result.body.recurring_application_charges;
-      console.log(subscriptions);
-      setSubcriptions(subscriptions);
+      console.log(result.data.body.recurring_application_charges);
+      if (result.data.body.recurring_application_charges.length !== 0) {
+        const subscriptionss = result.data.body.recurring_application_charges;
+
+        setSubId(subscriptionss[0].id);
+        setSubName(subscriptionss[0].name);
+        setSubStatus(subscriptionss[0].status);
+
+        if (subscriptionss[0].name === "Standard Plan") {
+          setStdButton(false);
+        } else if (subscriptionss[0].name === "Pro Plan") {
+          setProButton(false);
+          setStdButton(false);
+        }
+      }
     });
 
     setLoadData(loadData);
   }, [loadData]);
+
+  // console.log(subName);
+  // console.log(subStatus);
 
   let customer_data = customers.map((customer) => {
     // return <p key={customer.id}>{customer.email}</p>;
@@ -142,76 +161,143 @@ function index({ authAxios }) {
 
   const subPicker = (
     <Page>
-      <Button onClick={stdSubs}>Standard Subscription</Button>
-
-      <Button onClick={proSubs}>Professional Subscription</Button>
+      <div style={{ marginBottom: 2 + "em" }}>
+        <Card>
+          <Stack alignment="center" spacing="extraLoose">
+            <Stack.Item fill>
+              <Heading>Standard Subscription</Heading>
+            </Stack.Item>
+            <Stack.Item>
+              <Button onClick={stdSubs}>Subscribe</Button>
+            </Stack.Item>
+          </Stack>
+        </Card>
+      </div>
+      <div style={{ marginBottom: 2 + "em" }}>
+        <Card>
+          <Stack alignment="center" spacing="extraLoose">
+            <Stack.Item fill>
+              <Heading>Professional Subscription</Heading>
+            </Stack.Item>
+            <Stack.Item>
+              <Button onClick={proSubs}>Subscribe</Button>
+            </Stack.Item>
+          </Stack>
+        </Card>
+      </div>
     </Page>
   );
-  return subcriptions === undefined ? (
+
+  const subPage = async () => {
+    return (
+      <Page>
+        <div style={{ marginBottom: 2 + "rem" }}>
+          <Card>
+            <Stack alignment="center" spacing="extraLoose">
+              <Stack.Item fill>
+                <Heading>Standard Subscription</Heading>
+              </Stack.Item>
+              <Stack.Item>
+                <Button onClick={stdSubs}>Subscribe</Button>
+              </Stack.Item>
+            </Stack>
+          </Card>
+        </div>
+        <div style={{ marginBottom: 2 + "rem" }}>
+          <Card>
+            <Stack alignment="center" spacing="extraLoose">
+              <Stack.Item fill>
+                <Heading>Professional Subscription</Heading>
+              </Stack.Item>
+              <Stack.Item>
+                <Button onClick={proSubs}>Subscribe</Button>
+              </Stack.Item>
+            </Stack>
+          </Card>
+        </div>
+      </Page>
+    );
+  };
+
+  return subId === "" || subStatus !== "active" ? (
     subPicker
   ) : (
-    <Page>
-      <Stack alignment="center" spacing="extraLoose">
-        <Stack.Item fill>
-          <Heading>Customer List</Heading>
-        </Stack.Item>
-        <Stack.Item>
-          <Button monochrome outline onClick={sendEmail}>
-            Send Email
-          </Button>
-        </Stack.Item>
-      </Stack>
-      {/* <div style="margin-top: 10px"></div> */}
-      <AppProvider
-        i18n={{
-          Polaris: {
-            ResourceList: {
-              sortingLabel: "Sort by",
-              defaultItemSingular: "item",
-              defaultItemPlural: "items",
-              showing: "Showing {itemsCount} {resource}",
-              Item: {
-                viewItem: "View details for {itemName}",
+    <div>
+      <Page>
+        <div style={{ marginBottom: 2 + "em" }}>
+          <Stack alignment="center" spacing="extraLoose">
+            <Stack.Item fill>
+              <Heading>Customer List</Heading>
+            </Stack.Item>
+            <Stack.Item>
+              <Button
+                monochrome
+                outline
+                onClick={sendEmail}
+                disabled={stdButton}
+              >
+                Send Email
+              </Button>
+              <Button onClick={subPage}>Go To Subscriptions</Button>
+            </Stack.Item>
+          </Stack>
+        </div>
+
+        {/* <div style="margin-top: 10px"></div> */}
+        <AppProvider
+          i18n={{
+            Polaris: {
+              ResourceList: {
+                sortingLabel: "Sort by",
+                defaultItemSingular: "item",
+                defaultItemPlural: "items",
+                showing: "Showing {itemsCount} {resource}",
+                Item: {
+                  viewItem: "View details for {itemName}",
+                },
+              },
+              Common: {
+                checkbox: "checkbox",
               },
             },
-            Common: {
-              checkbox: "checkbox",
-            },
-          },
-        }}
-      >
-        <Card>
-          <ResourceList
-            showHeader
-            items={customer_data}
-            renderItem={(item) => {
-              const { id, firstName, lastName, email } = item;
-              const media = <Avatar size="medium" name={firstName} />;
+          }}
+        >
+          <Card>
+            <ResourceList
+              showHeader
+              items={customer_data}
+              renderItem={(item) => {
+                const { id, firstName, lastName, email } = item;
+                const media = <Avatar size="medium" name={firstName} />;
 
-              return (
-                <ResourceList.Item id={id} media={media}>
-                  <Stack>
-                    <Stack.Item fill>
-                      <h3>
-                        <TextStyle variation="strong">
-                          {lastName} {firstName}
-                        </TextStyle>
-                      </h3>
-                      <div>{email}</div>
-                    </Stack.Item>
-                    <Stack.Item>
-                      <Button onClick={() => send_single_mail(id, email)}>
-                        Send Email
-                      </Button>
-                    </Stack.Item>
-                  </Stack>
-                </ResourceList.Item>
-              );
-            }}
-          />
-        </Card>
-      </AppProvider>
-    </Page>
+                return (
+                  <ResourceList.Item id={id} media={media}>
+                    <Stack>
+                      <Stack.Item fill>
+                        <h3>
+                          <TextStyle variation="strong">
+                            {lastName} {firstName}
+                          </TextStyle>
+                        </h3>
+                        <div>{email}</div>
+                      </Stack.Item>
+                      <Stack.Item>
+                        <Button
+                          onClick={() => send_single_mail(id, email)}
+                          disabled={proButton}
+                        >
+                          Send Email
+                        </Button>
+                      </Stack.Item>
+                    </Stack>
+                  </ResourceList.Item>
+                );
+              }}
+            />
+          </Card>
+        </AppProvider>
+      </Page>
+    </div>
   );
 }
 

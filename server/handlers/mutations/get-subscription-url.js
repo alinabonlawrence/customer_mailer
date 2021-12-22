@@ -11,16 +11,9 @@ export function RECURRING_CREATE(url) {
           lineItems: [
           {
             plan: {
-              appUsagePricingDetails: {
-                  cappedAmount: { amount: 10, currencyCode: USD }
-                  terms: "$1 for 1000 emails"
-              }
-            }
-          }
-          {
-            plan: {
               appRecurringPricingDetails: {
                   price: { amount: 10, currencyCode: USD }
+                  interval: EVERY_30_DAYS
               }
             }
           }
